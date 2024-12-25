@@ -11,26 +11,21 @@ from pytube import YouTube, Playlist
 from helpers.database import u_video
 from helpers.youtube import get_resolution_keyboard, get_youtube_video_id
 
-
 START_TXT = script.START_TXT
 HELP_TXT = script.HELP_TXT
-ABOUT_TXT = script.ABOUT_TXT
-
+ABOUT_TXT = script.ABET_TXT
 
 @Client.on_message(filters.regex(r'https?:\/\/(?:www\.)?(?:m\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=)?([a-zA-Z0-9_-]{11})$'))
 async def handle_youtube_link(bot, message):
     video_id = get_youtube_video_id(message.text)
-    youtube = YouTube(f'https://www.youtube.com/watch?v={video_id}')
-    thumbnail_url = youtube.thumbnail_url
-    title = youtube.title
-    print(f"1, Title is {title}")
-    print(f"2 ,{youtube.vid_info}")
-    print(f"3,{youtube.vid_info['videoDetails']['title']}")
-    description = youtube.description
-    formatted_text = f"<b>{title}</b>\n\n{description[:300]}{'...' if len(description) > 300 else ''} <a href='https://www.youtube.com/watch?v={video_id}''>Read more</a>\n\n\nOnly download videos that you have the right to download. Do not use this bot to download copyrighted content that you do not have permission to use.\nDo not use this bot to download content that is illegal or violates Telegram's terms of service.\nBe respectful to other users and do not use the bot to spam or harass others.\nThe bot can only download videos that are publicly available on YouTube.\nThe bot can only download videos up to a maximum file size of 2 GB.\nThe bot can only download videos that are available in a format that can be downloaded."
-    resolutions = []
-
     try:
+        youtube = YouTube(f'https://www.youtube.com/watch?v={video_id}')
+        thumbnail_url = youtube.thumbnail_url
+        title = youtube.title
+        description = youtube.description
+        formatted_text = f"<b>{title}</b>\n\n{description[:300]}{'...' if len(description) > 300 else ''} <a href='https://www.youtube.com/watch?v={video_id}''>Read more</a>\n\n\nOnly download videos that you have the right to download. Do not use this bot to download copyrighted content that you do not have permission to use.\nDo not use this bot to download content that is illegal or violates Telegram's terms of service.\nBe respectful to other users and do not use the bot to spam or harass others.\nThe bot can only download videos that are publicly available on YouTube.\nThe bot can only download videos up to a maximum file size of 2 GB.\nThe bot can only download videos that are available in a format that can be downloaded."
+        resolutions = []
+
         for stream in youtube.streams.filter(progressive=True):
             resolutions.append(stream.resolution)
         buttons = [
@@ -90,7 +85,25 @@ async def handle_youtube_playlist_link(bot, message):
         keyboard = [buttons, t_buttons, d_buttons]
         markup = InlineKeyboardMarkup(keyboard)
 
-        await bot.send_message(chat_id=chat_id, text=formatted_text ,reply_markup=markup)
+        await bot.send_message(chat_id=chat_id, text=formatted_text, reply_markup=markup)
 
     except Exception as e:
         await bot.send_message(message.chat.id, f"Error: {e}")
+
+# Note: Additional callback query handlers for buttons would be needed here to make the bot fully functional.
+
+# Example callback handler for resolution selection:
+@Client.on_callback_query(filters.regex(r"res_"))
+async def resolution_callback(_, callback_query: CallbackQuery):
+    # Implement your resolution selection logic here
+    await callback_query.answer("Resolution selected")
+    await callback_query.message.edit_reply_markup(reply_markup=None)
+
+# Example callback handler for download:
+@Client.on_callback_query(filters.regex(r"download_"))
+async def download_callback(_, callback_query: CallbackQuery):
+    # Implement your download logic here
+    await callback_query.answer("Download started")
+    await callback_query.message.edit_reply_markup(reply_markup=None)
+
+# This is just a basic structure. You would need to fill in the logic for handling these callbacks properly.
